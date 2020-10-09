@@ -1,9 +1,4 @@
-import { Kind } from './language'
-
-export type Token = {
-    kind: Kind,
-    width: number,
-}
+import { Kind, Token } from './language'
 
 function match (input: string, res: [Kind, RegExp][]): Token {
   for (const [kind, re] of res) {

@@ -11,3 +11,8 @@ export const Kind = {
   ParenClose: ')'
 } as const
 export type Kind = typeof Kind[keyof typeof Kind]
+
+export type Token = {
+  kind: Kind,
+  width: number,
+}

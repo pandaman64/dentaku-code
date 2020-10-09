@@ -1,5 +1,4 @@
-import { Kind } from './language'
-import { Token } from './lexer'
+import { Kind, Token } from './language'
 
 // Language Definition:
 // FILE := LINE*
