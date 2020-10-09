@@ -21,94 +21,103 @@ import { Token } from './lexer'
 // PRIM := INTEGER
 //       | '(' EXPR ')'
 
-export function parseFile (tokens: Token[]): Token[] {
-  while (tokens.length > 0) {
-    tokens = parseLine(tokens)
+export class Parser {
+  tokens: Token[]
+
+  constructor (tokens: Token[]) {
+    this.tokens = tokens
   }
-  return tokens
-}
 
-function parseLine (tokens: Token[]): Token[] {
-  tokens = skipWhitespace(tokens)
-  tokens = parseExpr(tokens)
-  tokens = skipWhitespace(tokens)
-  tokens = expect(tokens, Kind.NewLine)
-  return tokens
-}
-
-function parseExpr (tokens: Token[]): Token[] {
-  tokens = parseTerm(tokens)
-  tokens = skipWhitespace(tokens)
-  // 演算子を先読み
-  if (tokens.length === 0) {
-    return tokens
-  }
-  switch (tokens[0].kind) {
-    case Kind.Plus:
-    case Kind.Minus:
-      tokens = tokens.slice(1)
-      break
-
-    default:
-      return tokens
-  }
-  tokens = skipWhitespace(tokens)
-  tokens = parseExpr(tokens)
-  return tokens
-}
-
-function parseTerm (tokens: Token[]): Token[] {
-  tokens = parsePrim(tokens)
-  tokens = skipWhitespace(tokens)
-  // 演算子を先読み
-  if (tokens.length === 0) {
-    return tokens
-  }
-  switch (tokens[0].kind) {
-    case Kind.Mult:
-    case Kind.Div:
-      tokens = tokens.slice(1)
-      break
-
-    default:
-      return tokens
-  }
-  tokens = skipWhitespace(tokens)
-  tokens = parseTerm(tokens)
-  return tokens
-}
-
-function parsePrim (tokens: Token[]): Token[] {
-  switch (tokens[0].kind) {
-    case Kind.Integer:
-      return tokens.slice(1)
-
-    case Kind.ParenOpen: {
-      tokens = tokens.slice(1)
-      tokens = skipWhitespace(tokens)
-      tokens = parseExpr(tokens)
-      tokens = skipWhitespace(tokens)
-      tokens = expect(tokens, Kind.ParenClose)
-      return tokens
+  parseFile () {
+    while (this.tokens.length > 0) {
+      this.parseLine()
     }
-
-    default:
-      throw new Error('invalid prim')
   }
-}
 
-function skipWhitespace (tokens: Token[]): Token[] {
-  let index = 0
-  while (index < tokens.length && tokens[index].kind === Kind.Whitespace) {
-    index++
+  parseLine () {
+    this.skipWhitespace()
+    this.parseExpr()
+    this.skipWhitespace()
+    this.expect(Kind.NewLine)
   }
-  return tokens.slice(index)
-}
 
-function expect (tokens: Token[], expected: Kind): Token[] {
-  if (tokens.length > 0 && tokens[0].kind === expected) {
-    return tokens.slice(1)
-  } else {
-    throw new Error(`token mismatch: expected ${expected}, got ${tokens.length > 0 ? tokens[0] : 'EOF'}`)
+  parseExpr () {
+    this.parseTerm()
+    this.skipWhitespace()
+    // 演算子を先読み
+    if (this.tokens.length === 0) {
+      return
+    }
+    switch (this.tokens[0].kind) {
+      case Kind.Plus:
+      case Kind.Minus:
+        this.skip()
+        break
+
+      default:
+        return
+    }
+    this.skipWhitespace()
+    this.parseExpr()
+  }
+
+  parseTerm () {
+    this.parsePrim()
+    this.skipWhitespace()
+    // 演算子を先読み
+    if (this.tokens.length === 0) {
+      return
+    }
+    switch (this.tokens[0].kind) {
+      case Kind.Mult:
+      case Kind.Div:
+        this.skip()
+        break
+
+      default:
+        return
+    }
+    this.skipWhitespace()
+    this.parseTerm()
+  }
+
+  parsePrim () {
+    switch (this.tokens[0].kind) {
+      case Kind.Integer:
+        this.expect(Kind.Integer)
+        return
+
+      case Kind.ParenOpen: {
+        this.expect(Kind.ParenOpen)
+        this.skipWhitespace()
+        this.parseExpr()
+        this.skipWhitespace()
+        this.expect(Kind.ParenClose)
+        return
+      }
+
+      default:
+        throw new Error('invalid prim')
+    }
+  }
+
+  skipWhitespace () {
+    let index = 0
+    while (index < this.tokens.length && this.tokens[index].kind === Kind.Whitespace) {
+      index++
+    }
+    this.tokens = this.tokens.slice(index)
+  }
+
+  skip () {
+    this.tokens = this.tokens.slice(1)
+  }
+
+  expect (expected: Kind) {
+    if (this.tokens.length > 0 && this.tokens[0].kind === expected) {
+      this.skip()
+    } else {
+      throw new Error(`token mismatch: expected ${expected}, got ${this.tokens.length > 0 ? this.tokens[0] : 'EOF'}`)
+    }
   }
 }

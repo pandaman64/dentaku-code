@@ -1,13 +1,14 @@
 import { assert } from 'chai'
 import { describe, it } from 'mocha'
 import { lex } from '../lexer'
-import { parseFile } from '../parser'
+import { Parser } from '../parser'
 
 describe('recognize', () => {
   it('one line', () => {
     const tokens = lex('\t123 + 45\t\n')
-    const result = parseFile(tokens)
-    assert.deepEqual(result, [])
+    const parser = new Parser(tokens)
+    parser.parseFile()
+    assert.deepEqual(parser.tokens, [])
   })
 
   it('multi lines', () => {
@@ -15,7 +16,8 @@ describe('recognize', () => {
     135 * 242
     (1 + 2) * (3 - 4) / 5
 `)
-    const result = parseFile(tokens)
-    assert.deepEqual(result, [])
+    const parser = new Parser(tokens)
+    parser.parseFile()
+    assert.deepEqual(parser.tokens, [])
   })
 })
