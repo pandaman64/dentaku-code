@@ -1,4 +1,4 @@
-import { emptyNode, GreenNode, Kind, pushNode, Token } from './language'
+import { emptyNode, Node, Kind, pushNode, Token } from './language'
 
 // Language Definition:
 // FILE := LINE*
@@ -27,7 +27,7 @@ export class Parser {
     this.tokens = tokens
   }
 
-  parseFile (): GreenNode {
+  parseFile (): Node {
     const node = emptyNode(Kind.File)
 
     while (this.tokens.length > 0) {
@@ -37,7 +37,7 @@ export class Parser {
     return node
   }
 
-  parseLine (): GreenNode {
+  parseLine (): Node {
     const node = emptyNode(Kind.Line)
 
     pushNode(node, this.skipWhitespace())
@@ -48,7 +48,7 @@ export class Parser {
     return node
   }
 
-  parseExpr (): GreenNode {
+  parseExpr (): Node {
     const node = emptyNode(Kind.Expr)
 
     pushNode(node, this.parseTerm())
@@ -72,7 +72,7 @@ export class Parser {
     return node
   }
 
-  parseTerm (): GreenNode {
+  parseTerm (): Node {
     const node = emptyNode(Kind.Term)
 
     pushNode(node, this.parsePrim())
@@ -96,7 +96,7 @@ export class Parser {
     return node
   }
 
-  parsePrim (): GreenNode {
+  parsePrim (): Node {
     const node = emptyNode(Kind.Prim)
 
     switch (this.tokens[0].kind) {

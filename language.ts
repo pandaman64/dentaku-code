@@ -22,13 +22,13 @@ export type Token = {
   width: number,
 }
 
-export type GreenNode = {
+export type Node = {
   kind: Kind,
   width: number,
-  children?: GreenNode[],
+  children?: Node[],
 }
 
-export function emptyNode (kind: Kind): GreenNode {
+export function emptyNode (kind: Kind): Node {
   return {
     kind,
     width: 0,
@@ -36,42 +36,42 @@ export function emptyNode (kind: Kind): GreenNode {
   }
 }
 
-export function pushNode (green: GreenNode, child?: GreenNode) {
+export function pushNode (node: Node, child?: Node) {
   if (child === undefined) {
     return
   }
 
-  if (green.children === undefined) {
-    green.width = child.width
-    green.children = [child]
+  if (node.children === undefined) {
+    node.width = child.width
+    node.children = [child]
   } else {
-    green.width += child.width
-    green.children.push(child)
+    node.width += child.width
+    node.children.push(child)
   }
 }
 
 export type Cursor = {
   offset: number,
-  green: GreenNode,
+  node: Node,
   parent?: Cursor,
 }
 
-export function cursorRoot (green: GreenNode): Cursor {
+export function cursorRoot (node: Node): Cursor {
   return {
     offset: 0,
-    green
+    node
   }
 }
 
 export function * cursorChildren (cursor: Cursor): Iterable<Cursor> {
   let offset = cursor.offset
-  if (cursor.green.children !== undefined) {
-    for (const child of cursor.green.children) {
+  if (cursor.node.children !== undefined) {
+    for (const child of cursor.node.children) {
       const childOffset = offset
       offset += child.width
       yield {
         offset: childOffset,
-        green: child,
+        node: child,
         parent: cursor
       }
     }
@@ -83,7 +83,7 @@ function cursorPrettyPrintAt (cursor: Cursor, level: number): string {
   for (let i = 0; i < level; i++) {
     buffer += '  '
   }
-  buffer += `${cursor.green.kind}@${cursor.offset}..${cursor.offset + cursor.green.width}\n`
+  buffer += `${cursor.node.kind}@${cursor.offset}..${cursor.offset + cursor.node.width}\n`
 
   for (const child of cursorChildren(cursor)) {
     buffer += cursorPrettyPrintAt(child, level + 1)
