@@ -1,4 +1,4 @@
-import { Kind, Token } from './language'
+import { emptyNode, GreenNode, Kind, pushNode, Token } from './language'
 
 // Language Definition:
 // FILE := LINE*
@@ -27,72 +27,90 @@ export class Parser {
     this.tokens = tokens
   }
 
-  parseFile () {
+  parseFile (): GreenNode {
+    const node = emptyNode(Kind.File)
+
     while (this.tokens.length > 0) {
-      this.parseLine()
+      pushNode(node, this.parseLine())
     }
+
+    return node
   }
 
-  parseLine () {
-    this.skipWhitespace()
-    this.parseExpr()
-    this.skipWhitespace()
-    this.expect(Kind.NewLine)
+  parseLine (): GreenNode {
+    const node = emptyNode(Kind.Line)
+
+    pushNode(node, this.skipWhitespace())
+    pushNode(node, this.parseExpr())
+    pushNode(node, this.skipWhitespace())
+    pushNode(node, this.expect(Kind.NewLine))
+
+    return node
   }
 
-  parseExpr () {
-    this.parseTerm()
-    this.skipWhitespace()
+  parseExpr (): GreenNode {
+    const node = emptyNode(Kind.Expr)
+
+    pushNode(node, this.parseTerm())
+    pushNode(node, this.skipWhitespace())
     // 演算子を先読み
     if (this.tokens.length === 0) {
-      return
+      return node
     }
     switch (this.tokens[0].kind) {
       case Kind.Plus:
       case Kind.Minus:
-        this.skip()
+        pushNode(node, this.skip())
         break
 
       default:
-        return
+        return node
     }
-    this.skipWhitespace()
-    this.parseExpr()
+    pushNode(node, this.skipWhitespace())
+    pushNode(node, this.parseExpr())
+
+    return node
   }
 
-  parseTerm () {
-    this.parsePrim()
-    this.skipWhitespace()
+  parseTerm (): GreenNode {
+    const node = emptyNode(Kind.Term)
+
+    pushNode(node, this.parsePrim())
+    pushNode(node, this.skipWhitespace())
     // 演算子を先読み
     if (this.tokens.length === 0) {
-      return
+      return node
     }
     switch (this.tokens[0].kind) {
       case Kind.Mult:
       case Kind.Div:
-        this.skip()
+        pushNode(node, this.skip())
         break
 
       default:
-        return
+        return node
     }
-    this.skipWhitespace()
-    this.parseTerm()
+    pushNode(node, this.skipWhitespace())
+    pushNode(node, this.parseTerm())
+
+    return node
   }
 
-  parsePrim () {
+  parsePrim (): GreenNode {
+    const node = emptyNode(Kind.Prim)
+
     switch (this.tokens[0].kind) {
       case Kind.Integer:
-        this.expect(Kind.Integer)
-        return
+        pushNode(node, this.expect(Kind.Integer))
+        return node
 
       case Kind.ParenOpen: {
-        this.expect(Kind.ParenOpen)
-        this.skipWhitespace()
-        this.parseExpr()
-        this.skipWhitespace()
-        this.expect(Kind.ParenClose)
-        return
+        pushNode(node, this.expect(Kind.ParenOpen))
+        pushNode(node, this.skipWhitespace())
+        pushNode(node, this.parseExpr())
+        pushNode(node, this.skipWhitespace())
+        pushNode(node, this.expect(Kind.ParenClose))
+        return node
       }
 
       default:
@@ -100,21 +118,21 @@ export class Parser {
     }
   }
 
-  skipWhitespace () {
-    let index = 0
-    while (index < this.tokens.length && this.tokens[index].kind === Kind.Whitespace) {
-      index++
+  skipWhitespace (): Token | undefined {
+    if (this.tokens.length > 0 && this.tokens[0].kind === Kind.Whitespace) {
+      return this.skip()
     }
-    this.tokens = this.tokens.slice(index)
   }
 
-  skip () {
+  skip (): Token {
+    const token = this.tokens[0]
     this.tokens = this.tokens.slice(1)
+    return token
   }
 
-  expect (expected: Kind) {
+  expect (expected: Kind): Token {
     if (this.tokens.length > 0 && this.tokens[0].kind === expected) {
-      this.skip()
+      return this.skip()
     } else {
       throw new Error(`token mismatch: expected ${expected}, got ${this.tokens.length > 0 ? this.tokens[0] : 'EOF'}`)
     }
