@@ -76,7 +76,7 @@ export function cursorRoot (node: Node): Cursor {
   }
 }
 
-export function * cursorChildren (cursor: Cursor): Iterable<Cursor> {
+export function * cursorChildren (cursor: Cursor): IterableIterator<Cursor> {
   let offset = cursor.offset
   if (cursor.node.children !== undefined) {
     for (const child of cursor.node.children) {
