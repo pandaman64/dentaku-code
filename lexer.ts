@@ -6,7 +6,8 @@ function match (input: string, res: [Kind, RegExp][]): Token {
     if (result !== null) {
       return {
         kind,
-        width: result[0].length
+        width: result[0].length,
+        text: result[0]
       }
     }
   }

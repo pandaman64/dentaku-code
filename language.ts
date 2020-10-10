@@ -20,11 +20,13 @@ export type Kind = typeof Kind[keyof typeof Kind]
 export type Token = {
   kind: Kind,
   width: number,
+  text: string,
 }
 
 export type Node = {
   kind: Kind,
   width: number,
+  text?: string,
   children?: Node[],
 }
 
@@ -83,7 +85,12 @@ function cursorPrettyPrintAt (cursor: Cursor, level: number): string {
   for (let i = 0; i < level; i++) {
     buffer += '  '
   }
-  buffer += `${cursor.node.kind}@${cursor.offset}..${cursor.offset + cursor.node.width}\n`
+  buffer += `${cursor.node.kind}@${cursor.offset}..${cursor.offset + cursor.node.width}`
+  if (cursor.node.text !== undefined) {
+    // JSON.stringify for escaping special characters
+    buffer += ` ${JSON.stringify(cursor.node.text)}`
+  }
+  buffer += '\n'
 
   for (const child of cursorChildren(cursor)) {
     buffer += cursorPrettyPrintAt(child, level + 1)
