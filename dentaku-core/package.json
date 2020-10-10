@@ -1,5 +1,5 @@
 {
-  "name": "dentaku-lsp",
+  "name": "dentaku-core",
   "version": "0.1.0",
   "description": "",
   "main": "index.ts",
