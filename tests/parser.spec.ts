@@ -3,6 +3,7 @@ import { describe, it } from 'mocha'
 import { cursorPrettyPrint, cursorRoot } from '../language'
 import { lex } from '../lexer'
 import { Parser } from '../parser'
+import jsc from 'jsverify'
 
 describe('recognize', () => {
   it('one line', () => {
@@ -113,5 +114,83 @@ describe('recognize', () => {
               Integer@45..46 "5"
     NewLine@46..47 "\n"
 `)
+  })
+})
+
+describe('parse error', () => {
+  it('one liner', () => {
+    const input = '123 + \n' // missing RHS
+    const tokens = lex(input)
+    const parser = new Parser(tokens)
+    const node = parser.parseFile()
+    const root = cursorRoot(node)
+
+    assert.deepEqual(parser.tokens, [])
+    assert.equal(node.width, input.length)
+    assert.equal(cursorPrettyPrint(root),
+      String.raw`File@0..7
+  Line@0..7
+    Expr@0..6
+      Term@0..4
+        Prim@0..3
+          Integer@0..3 "123"
+        Whitespace@3..4 " "
+      +@4..5 "+"
+      Whitespace@5..6 " "
+      Expr@6..6
+        Term@6..6
+          Prim@6..6
+            Error@6..6 ""
+    NewLine@6..7 "\n"
+`)
+  })
+
+  it('missing newline', () => {
+    const input = '123 + 45 2 * 3'
+    const tokens = lex(input)
+    const parser = new Parser(tokens)
+    const node = parser.parseFile()
+    const root = cursorRoot(node)
+
+    assert.deepEqual(parser.tokens, [])
+    assert.equal(node.width, input.length)
+    assert.equal(cursorPrettyPrint(root),
+      String.raw`File@0..14
+  Line@0..9
+    Expr@0..9
+      Term@0..4
+        Prim@0..3
+          Integer@0..3 "123"
+        Whitespace@3..4 " "
+      +@4..5 "+"
+      Whitespace@5..6 " "
+      Expr@6..9
+        Term@6..9
+          Prim@6..8
+            Integer@6..8 "45"
+          Whitespace@8..9 " "
+    Error@9..9 ""
+  Line@9..14
+    Expr@9..14
+      Term@9..14
+        Prim@9..10
+          Integer@9..10 "2"
+        Whitespace@10..11 " "
+        *@11..12 "*"
+        Whitespace@12..13 " "
+        Term@13..14
+          Prim@13..14
+            Integer@13..14 "3"
+    Error@14..14 ""
+`)
+  })
+})
+
+describe('parser is infallible', () => {
+  jsc.property('parser preserves text', jsc.string, input => {
+    const tokens = lex(input)
+    const parser = new Parser(tokens)
+    const node = parser.parseFile()
+    return node.width === input.length
   })
 })

@@ -23,6 +23,14 @@ export type Token = {
   text: string,
 }
 
+export function errorToken (): Token {
+  return {
+    kind: Kind.Error,
+    width: 0,
+    text: ''
+  }
+}
+
 export type Node = {
   kind: Kind,
   width: number,
@@ -38,8 +46,11 @@ export function emptyNode (kind: Kind): Node {
   }
 }
 
-export function pushNode (node: Node, child?: Node) {
-  if (child === undefined) {
+export function pushNode (node: Node, child: Node | Node[]) {
+  if (Array.isArray(child)) {
+    for (const c of child) {
+      pushNode(node, c)
+    }
     return
   }
 
