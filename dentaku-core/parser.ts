@@ -35,7 +35,7 @@ export class Parser {
       if (line.width !== 0) {
         pushNode(node, line)
       } else {
-        // prevent from loop infinitely: eat next token as an error
+        // prevent from looping infinitely: eat next token as an error
         const skip = this.skip()
         skip.kind = Kind.Error
         pushNode(node, skip)
@@ -108,8 +108,7 @@ export class Parser {
     const node = emptyNode(Kind.Prim)
 
     if (this.tokens.length === 0) {
-      // console.log('missing prim')
-      pushNode(node, errorToken())
+      pushNode(node, errorToken('missing primitive expression'))
       return node
     }
 
@@ -127,8 +126,7 @@ export class Parser {
         break
 
       default:
-        // console.log('invalid prim')
-        pushNode(node, errorToken())
+        pushNode(node, errorToken('missing primitive expression'))
     }
 
     return node
@@ -148,7 +146,7 @@ export class Parser {
       this.tokens = this.tokens.slice(1)
       return token
     } else {
-      return errorToken()
+      return errorToken('unexpected EOF')
     }
   }
 
@@ -156,8 +154,7 @@ export class Parser {
     if (this.tokens.length > 0 && this.tokens[0].kind === expected) {
       return this.skip()
     } else {
-      // console.log(`token mismatch: expected ${expected}, got ${this.tokens.length > 0 ? this.tokens[0] : 'EOF'}`)
-      return errorToken()
+      return errorToken(`token mismatch: expected ${expected}, got ${this.tokens.length > 0 ? this.tokens[0] : 'EOF'}`)
     }
   }
 }

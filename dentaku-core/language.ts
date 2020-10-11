@@ -21,13 +21,15 @@ export type Token = {
   kind: Kind,
   width: number,
   text: string,
+  error?: string,
 }
 
-export function errorToken (): Token {
+export function errorToken (error?: string): Token {
   return {
     kind: Kind.Error,
     width: 0,
-    text: ''
+    text: '',
+    error
   }
 }
 
@@ -36,6 +38,7 @@ export type Node = {
   width: number,
   text?: string,
   children?: Node[],
+  error?: string,
 }
 
 export function emptyNode (kind: Kind): Node {
