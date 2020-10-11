@@ -5,7 +5,10 @@ export function evalFile (file: Cursor): number[] {
 
   for (const child of cursorChildren(file)) {
     if (child.node.kind === Kind.Line) {
-      ret.push(evalLine(child))
+      const value = evalLine(child)
+      if (value !== undefined) {
+        ret.push(value)
+      }
     }
   }
 
@@ -25,14 +28,14 @@ function isExpr (kind: Kind): boolean {
   }
 }
 
-function evalLine (line: Cursor): number {
+function evalLine (line: Cursor): number | undefined {
   for (const child of cursorChildren(line)) {
     if (isExpr(child.node.kind)) {
       return evalExpr(child)
     }
   }
 
-  throw new Error('expr not found')
+  return undefined
 }
 
 function operator (expr: Cursor): '+' | '-' | '*' | '/' | undefined {
@@ -49,7 +52,7 @@ function operator (expr: Cursor): '+' | '-' | '*' | '/' | undefined {
   return undefined
 }
 
-function evalExpr (expr: Cursor): number {
+function evalExpr (expr: Cursor): number | undefined {
   switch (expr.node.kind) {
     case Kind.Integer:
       return parseInt(expr.node.text!, 10)
@@ -67,7 +70,11 @@ function evalExpr (expr: Cursor): number {
       const ret = []
       for (const child of cursorChildren(expr)) {
         if (isExpr(child.node.kind)) {
-          ret.push(evalExpr(child))
+          const value = evalExpr(child)
+          if (value === undefined) {
+            return undefined
+          }
+          ret.push(value)
         }
       }
 
@@ -86,5 +93,5 @@ function evalExpr (expr: Cursor): number {
     }
   }
 
-  throw new Error('invalid expr')
+  return undefined
 }
