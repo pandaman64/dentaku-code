@@ -13,7 +13,7 @@ describe('parse success', () => {
     const parser = new Parser(tokens)
     const rootNode = parser.parseFile()
     const rootCursor = cursorRoot(rootNode)
-    assert.deepEqual(evalFile(rootCursor), [168])
+    assert.deepEqual(evalFile(rootCursor).map(result => result.value), [168])
   })
 
   it('multi lines', () => {
@@ -24,7 +24,7 @@ describe('parse success', () => {
     const parser = new Parser(tokens)
     const rootNode = parser.parseFile()
     const rootCursor = cursorRoot(rootNode)
-    assert.deepEqual(evalFile(rootCursor), [168, 4])
+    assert.deepEqual(evalFile(rootCursor).map(result => result.value), [168, 4])
   })
 })
 

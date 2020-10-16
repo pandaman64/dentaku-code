@@ -1,6 +1,11 @@
 import { Cursor, cursorChildren, Kind } from './language'
 
-export function evalFile (file: Cursor): number[] {
+export type EvalResult = {
+  expr: Cursor,
+  value?: number,
+}
+
+export function evalFile (file: Cursor): EvalResult[] {
   const ret = []
 
   for (const child of cursorChildren(file)) {
@@ -28,10 +33,14 @@ function isExpr (kind: Kind): boolean {
   }
 }
 
-function evalLine (line: Cursor): number | undefined {
+function evalLine (line: Cursor): EvalResult | undefined {
   for (const child of cursorChildren(line)) {
     if (isExpr(child.node.kind)) {
-      return evalExpr(child)
+      const value = evalExpr(child)
+      return {
+        expr: child,
+        value
+      }
     }
   }
 
