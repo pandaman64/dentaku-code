@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "compile": "tsc -p ./",
-    "test": "mocha -r ts-node/register tests/*.ts",
+    "test": "npm run compile && mocha -r ts-node/register tests/*.ts",
     "lint": "eslint *.ts tests/*.ts"
   },
   "author": "pandaman64",

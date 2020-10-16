@@ -1,8 +1,39 @@
 import { Cursor, cursorChildren, Kind } from './language'
 
 export type EvalResult = {
-  expr: Cursor,
+  start: number,
+  end: number,
   value?: number,
+}
+
+function nonTrivialRange (cursor: Cursor): [number, number] {
+  const children = [...cursorChildren(cursor)]
+  if (children.length === 0) {
+    switch (cursor.node.kind) {
+      // trivial terminal
+      case Kind.Error:
+      case Kind.Whitespace:
+      case Kind.NewLine:
+        return [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]
+
+      default:
+        return [cursor.offset, cursor.offset + cursor.node.width]
+    }
+  }
+
+  let start = Number.MAX_SAFE_INTEGER
+  let end = Number.MIN_SAFE_INTEGER
+  for (const child of children) {
+    const [startChild, endChild] = nonTrivialRange(child)
+    if (start > startChild) {
+      start = startChild
+    }
+    if (end < endChild) {
+      end = endChild
+    }
+  }
+
+  return [start, end]
 }
 
 export function evalFile (file: Cursor): EvalResult[] {
@@ -12,7 +43,12 @@ export function evalFile (file: Cursor): EvalResult[] {
     if (child.node.kind === Kind.Line) {
       const value = evalLine(child)
       if (value !== undefined) {
-        ret.push(value)
+        const [start, end] = nonTrivialRange(child)
+        ret.push({
+          start,
+          end,
+          value
+        })
       }
     }
   }
@@ -33,14 +69,10 @@ function isExpr (kind: Kind): boolean {
   }
 }
 
-function evalLine (line: Cursor): EvalResult | undefined {
+function evalLine (line: Cursor): number | undefined {
   for (const child of cursorChildren(line)) {
     if (isExpr(child.node.kind)) {
-      const value = evalExpr(child)
-      return {
-        expr: child,
-        value
-      }
+      return evalExpr(child)
     }
   }
 

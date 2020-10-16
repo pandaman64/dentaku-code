@@ -43,8 +43,8 @@ export function activate(context: vscode.ExtensionContext) {
         const ranges: vscode.DecorationOptions[] = results
             .filter(result => result.value !== undefined)
             .map(result => {
-                const start = doc.positionAt(result.expr.offset);
-                const end = doc.positionAt(result.expr.offset + result.expr.node.width);
+                const start = doc.positionAt(result.start);
+                const end = doc.positionAt(result.end);
                 const range = doc.validateRange(new vscode.Range(start, end));
                 return {
                     range,

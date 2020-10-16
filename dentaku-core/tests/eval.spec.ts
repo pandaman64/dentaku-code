@@ -1,7 +1,7 @@
 import { assert } from 'chai'
 import { describe, it } from 'mocha'
 import { evalFile } from '../eval'
-import { cursorRoot } from '../language'
+import { cursorPrettyPrint, cursorRoot } from '../language'
 import { lex } from '../lexer'
 import { Parser } from '../parser'
 import jsc from 'jsverify'
@@ -13,7 +13,7 @@ describe('parse success', () => {
     const parser = new Parser(tokens)
     const rootNode = parser.parseFile()
     const rootCursor = cursorRoot(rootNode)
-    assert.deepEqual(evalFile(rootCursor).map(result => result.value), [168])
+    assert.deepEqual(evalFile(rootCursor), [{ start: 0, end: 8, value: 168 }], cursorPrettyPrint(rootCursor))
   })
 
   it('multi lines', () => {
@@ -24,7 +24,10 @@ describe('parse success', () => {
     const parser = new Parser(tokens)
     const rootNode = parser.parseFile()
     const rootCursor = cursorRoot(rootNode)
-    assert.deepEqual(evalFile(rootCursor).map(result => result.value), [168, 4])
+    assert.deepEqual(evalFile(rootCursor), [
+      { start: 0, end: 8, value: 168 },
+      { start: 13, end: 30, value: 4 }
+    ])
   })
 })
 
